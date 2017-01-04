@@ -1,0 +1,27 @@
+{
+  "name": "checkmydeps",
+  "version": "1.0.0",
+  "description": "Checks installed dependencies against the requirements of package.json. Handles non-semver URLs by checking the remote package.json!",
+  "main": "index.js",
+  "bin": "./bin/checkmydeps.js",
+  "repository": "AurelienRibon/node-checkmydeps",
+  "keywords": [
+    "dependency",
+    "dependencies",
+    "check"
+  ],
+  "author": "Aurelien Ribon <aurelien.ribon@gmail.com> (http://www.aurelienribon.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/AurelienRibon/node-checkmydeps/issues"
+  },
+  "homepage": "https://github.com/AurelienRibon/node-checkmydeps#readme",
+  "dependencies": {
+    "minimist": "^1.2.0",
+    "semver": "^5.3.0",
+    "suspend": "^0.7.0"
+  },
+  "engines": {
+    "node": ">=6"
+  }
+}
