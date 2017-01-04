@@ -56,36 +56,33 @@ suspend.run(function* () {
 // REPORT CREATION
 // -----------------------------------------------------------------------------
 
-function createReport(deps) {
+function createReport(result) {
   let report = '';
 
-  if (deps.ok.length && !hideUpToDate) {
-    report += '\nUP-TO-DATE\n';
-    report += '--------------------------------------------------------------------------------\n';
-
-    for (const { name, found, needs, type } of deps.ok) {
-      let needs2 = needs;
-      if (type === 'github') { needs2 += ' (on github)'; }
-
-      report += `${name}|needs ${needs2}|found ${found}\n`;
-    }
+  if (result.ok.length && !hideUpToDate) {
+    report += createTable(result.ok, 'UP-TO-DATE');
   }
 
-  if (deps.nok.length) {
-    report += '\nOUTDATED\n';
-    report += '--------------------------------------------------------------------------------\n';
-
-    for (const { name, found, needs, type } of deps.nok) {
-      let needs2 = needs;
-      if (type === 'github') { needs2 += ' (on github)'; }
-
-      report += `${name}|needs ${needs2}|found ${found}\n`;
-    }
+  if (result.nok.length) {
+    report += createTable(result.nok, 'OUTDATED');
   } else {
     report += '\nAll dependencies are up-to-date!';
   }
 
   return formatTable(report.trim());
+}
+
+function createTable(deps, title) {
+  let table = `\n${title}\n--------------------------------------------------------------------------------\n`;
+
+  for (const { name, found, needs, type } of deps) {
+    let needs2 = needs;
+    if (type === 'github') { needs2 += ' (on github)'; }
+
+    table += `${name}|needs ${needs2}|found ${found}\n`;
+  }
+
+  return table;
 }
 
 function formatTable(text) {
