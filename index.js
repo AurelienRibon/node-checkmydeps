@@ -12,7 +12,7 @@ const $$      = suspend.resume;
  * urls, the current version of the remote repository is checked (at branch/tag
  * specified in the url, if any), and compared against the installed version.
  */
-module.exports = function(modulePath, done) {
+module.exports = function(modulePath, options, done) {
   if (!done) {
     done = (err, res) => console.log(err || res);
   }
@@ -30,7 +30,7 @@ module.exports = function(modulePath, done) {
     const res  = { ok: [], nok: [] };
     if (!deps.length) { return res; }
 
-    yield findRemoteVersions(deps, $$());
+    yield findRemoteVersions(deps, options, $$());
 
     for (const dep of deps) {
       const depInstalledVersion = getInstalledDepVersion(`${modulePath}/node_modules/${dep.name}/package.json`);
@@ -72,7 +72,7 @@ function extractAllDeps(pack) {
   return deps;
 }
 
-function findRemoteVersions(deps, done) {
+function findRemoteVersions(deps, options, done) {
   deps.forEach(dep => { dep.versionToTestAgainst = dep.version; });
 
   const githubDeps = deps.filter(it => it.type === 'github');
@@ -82,7 +82,7 @@ function findRemoteVersions(deps, done) {
   let completed = 0;
 
   for (const dep of githubDeps) {
-    getGithubPackage(dep.version, (err, res) => {
+    getGithubPackage(dep.version, options, (err, res) => {
       if (err) { return done(err); }
 
       dep.versionToTestAgainst = res.version;
@@ -94,13 +94,9 @@ function findRemoteVersions(deps, done) {
   }
 }
 
-function getGithubPackage(repo, done) {
-  const token = process.env.GITHUB_TOKEN;
+function getGithubPackage(repo, options, done) {
+  const token = options.githubToken;
   const parts = repo.split(/[\/#]/);
-
-  if (!token) {
-    return done(new Error('You need to have an env-var GITHUB_TOKEN. The token must have "repo" capability.'));
-  }
 
   if (parts.length < 2) {
     return done(new Error(`Invalid github repository: "${repo}"`));
@@ -114,8 +110,12 @@ function getGithubPackage(repo, done) {
   const request = {
     hostname : 'raw.githubusercontent.com',
     path     : `/${path}/package.json`,
-    headers  : { 'Authorization': `token ${token}` }
+    headers  : {}
   };
+
+  if (token) {
+    request.headers.Authorization = `token ${token}`;
+  }
 
   https.get(request, res => {
     if (res.statusCode !== 200) {

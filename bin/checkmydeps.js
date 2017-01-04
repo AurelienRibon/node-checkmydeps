@@ -8,8 +8,9 @@ const minimist     = require('minimist');
 const args         = minimist(process.argv.slice(2));
 const modulePath   = args._[0] || '.';
 const hideUpToDate = args['hide-up-to-date'];
+const githubToken  = args['github-token'] || process.env.GITHUB_TOKEN;
 
-checkmydeps(modulePath, (err, res) => {
+checkmydeps(modulePath, { githubToken }, (err, res) => {
   if (err) { return console.log(err.message); }
   console.log(createReport(res));
 });
