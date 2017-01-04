@@ -6,17 +6,15 @@ const semver  = require('semver');
 const suspend = require('suspend');
 const $$      = suspend.resume;
 
+module.exports = checkMyDeps;
+
 /**
  * A function that retrieves all dependencies listed in package.json of the
  * specified module, and check them against installed modules. For github
  * urls, the current version of the remote repository is checked (at branch/tag
  * specified in the url, if any), and compared against the installed version.
  */
-module.exports = function(modulePath, options, done) {
-  if (!done) {
-    done = (err, res) => console.log(err || res);
-  }
-
+function checkMyDeps(modulePath, options, done) {
   suspend.run(function* () {
 
     const packagePath = `${modulePath}/package.json`;
@@ -49,14 +47,10 @@ module.exports = function(modulePath, options, done) {
     return res;
 
   }, done);
-};
-
-function getInstalledDepVersion(depPackagePath) {
-  return exists(depPackagePath) ? readJSON(depPackagePath).version : 'none';
 }
 
 // -----------------------------------------------------------------------------
-// HELPERS
+// DEPENDENCY MANAGEMENT
 // -----------------------------------------------------------------------------
 
 function extractAllDeps(pack) {
@@ -140,6 +134,14 @@ function getGithubPackage(repo, options, done) {
 
   }).on('error', done);
 }
+
+function getInstalledDepVersion(depPackagePath) {
+  return exists(depPackagePath) ? readJSON(depPackagePath).version : 'none';
+}
+
+// -----------------------------------------------------------------------------
+// HELPERS
+// -----------------------------------------------------------------------------
 
 function preventFunctionToBeCalledTwice(fn) {
   const newFn = (...args) => {

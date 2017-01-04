@@ -12,7 +12,9 @@ const githubToken  = args['github-token'] || process.env.GITHUB_TOKEN;
 
 checkmydeps(modulePath, { githubToken }, (err, res) => {
   if (err) { return console.log(err.message); }
-  console.log(createReport(res));
+
+  const report = createReport(res);
+  console.log(report);
 });
 
 // -----------------------------------------------------------------------------
