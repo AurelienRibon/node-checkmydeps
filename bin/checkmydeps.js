@@ -17,8 +17,12 @@ Options:
 // PROGRAM
 // -----------------------------------------------------------------------------
 
-const checkmydeps  = require('./lib/checkmydeps');
-const minimist     = require('minimist');
+const minimist    = require('minimist');
+const semver      = require('semver');
+const suspend     = require('suspend');
+const checkmydeps = require('../lib/checkmydeps');
+const utils       = require('../lib/utils');
+const $$          = suspend.resume;
 
 const args         = minimist(process.argv.slice(2));
 const modulePath   = args._[0] || '.';
@@ -32,15 +36,24 @@ if (showHelp) {
   return;
 }
 
-checkmydeps(modulePath, { githubToken }, (err, res) => {
-  if (err) { return console.log(err.message); }
+suspend.run(function* () {
 
-  const report = createReport(res);
+  yield* checkForUpdate();
+
+  const result = yield checkmydeps(modulePath, { githubToken }, $$());
+  const report = createReport(result);
   console.log(report);
+
+}, err => {
+  if (err) {
+    console.error(err);
+    process.exit(1);
+  }
 });
 
+
 // -----------------------------------------------------------------------------
-// HELPERS
+// REPORT CREATION
 // -----------------------------------------------------------------------------
 
 function createReport(deps) {
@@ -101,4 +114,23 @@ function formatTable(text) {
   }
 
   return lines.join('\n');
+}
+
+// -----------------------------------------------------------------------------
+// CHECK FOR UPDATE
+// -----------------------------------------------------------------------------
+
+function* checkForUpdate() {
+  const content        = yield utils.downloadGithubPackage('AurelienRibon/node-checkmydeps', null, $$());
+  const latestVersion  = content.version;
+  const currentVersion = require('../package.json').version;
+
+  if (semver.gt(latestVersion, currentVersion)) {
+    const tty        = process.stdout.isTTY;
+    const colorStart = tty ? '\u001b[31;1m' : '';
+    const colorEnd   = tty ? '\u001b[0m' : '';
+
+    const msg = `${colorStart}Version ${latestVersion} is available, current is ${currentVersion}, please update.${colorEnd}\n`;
+    console.log(msg);
+  }
 }
