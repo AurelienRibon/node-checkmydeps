@@ -1,6 +1,21 @@
 #!/usr/bin/env node
-
 'use strict';
+
+const help = `
+Usage: checkmydeps [options] [path]
+    path  The path of the target node module to check. Uses current directory if
+          no path is provided.
+
+Options:
+    --hide-up-to-date  Prevents the display of up-to-date dependencies.
+    --github-token     Defines the GitHub token to use to access private github
+                       repositories. The token must have "repo" capability (check
+                       your GitHub settings, section "Personal access tokens").
+    -h, --help         Shows this description.`;
+
+// -----------------------------------------------------------------------------
+// PROGRAM
+// -----------------------------------------------------------------------------
 
 const checkmydeps  = require('..');
 const minimist     = require('minimist');
@@ -9,6 +24,13 @@ const args         = minimist(process.argv.slice(2));
 const modulePath   = args._[0] || '.';
 const hideUpToDate = args['hide-up-to-date'];
 const githubToken  = args['github-token'] || process.env.GITHUB_TOKEN;
+const showHelp     = args.h || args.help;
+
+if (showHelp) {
+  console.log(help.trim());
+  process.exit(0);
+  return;
+}
 
 checkmydeps(modulePath, { githubToken }, (err, res) => {
   if (err) { return console.log(err.message); }
