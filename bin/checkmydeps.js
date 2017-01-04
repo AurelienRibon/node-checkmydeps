@@ -6,7 +6,7 @@ const checkmydeps  = require('..');
 const minimist     = require('minimist');
 
 const args         = minimist(process.argv.slice(2));
-const modulePath   = args._[0];
+const modulePath   = args._[0] || '.';
 const hideUpToDate = args['hide-up-to-date'];
 
 checkmydeps(modulePath, (err, res) => {
