@@ -17,7 +17,7 @@ Options:
 // PROGRAM
 // -----------------------------------------------------------------------------
 
-const checkmydeps  = require('..');
+const checkmydeps  = require('./lib/checkmydeps');
 const minimist     = require('minimist');
 
 const args         = minimist(process.argv.slice(2));
