@@ -38,11 +38,11 @@ if (showHelp) {
 
 suspend.run(function* () {
 
-  yield* checkForUpdate();
-
   const result = yield checkmydeps(modulePath, { githubToken }, $$());
   const report = createReport(result);
   console.log(report);
+
+  yield* checkForUpdate();
 
 }, err => {
   if (err) {
@@ -84,7 +84,7 @@ function* checkForUpdate() {
     const colorStart = tty ? '\u001b[31;1m' : '';
     const colorEnd   = tty ? '\u001b[0m' : '';
 
-    const msg = `${colorStart}Version ${latestVersion} is available, current is ${currentVersion}, please update.${colorEnd}\n`;
+    const msg = `\n\n${colorStart}Version ${latestVersion} is available, current is ${currentVersion}, please update.${colorEnd}`;
     console.log(msg);
   }
 }
