@@ -38,8 +38,8 @@ if (showHelp) {
 
 suspend.run(function* () {
 
-  const result = yield checkmydeps(modulePath, { githubToken }, $$());
-  const report = createReport(result);
+  const deps   = yield checkmydeps(modulePath, { githubToken }, $$());
+  const report = createReport(deps);
   console.log(report);
 
   yield* checkForUpdate();
@@ -51,29 +51,17 @@ suspend.run(function* () {
   }
 });
 
-
 // -----------------------------------------------------------------------------
 // HELPERS
 // -----------------------------------------------------------------------------
 
-function createReport(result) {
-  let report = '';
+function createReport(deps) {
+  if (hideUpToDate) {
+    deps = deps.filter(dep => dep.status !== 'ok');
+  }
 
   const useColors = process.stdout.isTTY;
-
-  if (result.ok.length && !hideUpToDate) {
-    report += `UP-TO-DATE\n--------------------------------------------------------------------------------\n`;
-    report += utils.createReportTable(result.ok, { useColors });
-  }
-
-  if (result.nok.length) {
-    report += `\n\nOUTDATED\n--------------------------------------------------------------------------------\n`;
-    report += utils.createReportTable(result.nok, { useColors });
-  } else {
-    report += '\n\nAll dependencies are up-to-date!';
-  }
-
-  return utils.formatReportTable(report.trim());
+  return utils.createReportTable(deps, { useColors });
 }
 
 function* checkForUpdate() {
@@ -82,11 +70,10 @@ function* checkForUpdate() {
   const currentVersion = require('../package.json').version;
 
   if (semver.gt(latestVersion, currentVersion)) {
-    const tty        = process.stdout.isTTY;
-    const colorStart = tty ? '\u001b[31;1m' : '';
-    const colorEnd   = tty ? '\u001b[0m' : '';
+    const tty      = process.stdout.isTTY;
+    const startRed = tty ? '\u001b[31;1m' : '';
+    const endColor = tty ? '\u001b[0m' : '';
 
-    const msg = `\n\n${colorStart}Version ${latestVersion} is available, current is ${currentVersion}, please update.${colorEnd}`;
-    console.log(msg);
+    console.log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
   }
 }
