@@ -59,14 +59,16 @@ suspend.run(function* () {
 function createReport(result) {
   let report = '';
 
+  const useColors = process.stdout.isTTY;
+
   if (result.ok.length && !hideUpToDate) {
     report += `UP-TO-DATE\n--------------------------------------------------------------------------------\n`;
-    report += utils.createReportTable(result.ok);
+    report += utils.createReportTable(result.ok, { useColors });
   }
 
   if (result.nok.length) {
     report += `\n\nOUTDATED\n--------------------------------------------------------------------------------\n`;
-    report += utils.createReportTable(result.nok);
+    report += utils.createReportTable(result.nok, { useColors });
   } else {
     report += '\n\nAll dependencies are up-to-date!';
   }
