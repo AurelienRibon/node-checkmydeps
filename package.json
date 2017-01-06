@@ -1,6 +1,6 @@
 {
   "name": "checkmydeps",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Checks installed dependencies against the requirements of package.json. Handles non-semver URLs by checking the remote package.json!",
   "main": "index.js",
   "bin": "./bin/checkmydeps.js",
