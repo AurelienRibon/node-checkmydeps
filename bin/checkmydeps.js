@@ -20,12 +20,10 @@ Options:
 
 const minimist       = require('minimist');
 const semver         = require('semver');
-const suspend        = require('suspend');
 const useColors      = require('supports-color');
 const checkmydeps    = require('../lib/checkmydeps');
 const utils          = require('../lib/utils');
 const currentVersion = require('../package.json').version;
-const $$             = suspend.resume;
 
 const args         = minimist(process.argv.slice(2));
 const modulePath   = args._[0] || '.';
@@ -44,41 +42,40 @@ if (showHelp) {
   return process.exit(0);
 }
 
-suspend.run(function* () {
-
-  const deps   = yield checkmydeps(modulePath, { githubToken }, $$());
-  const report = createReport(deps);
-  console.log(report);
-
-  yield* checkForUpdate();
-
-}, err => {
+checkmydeps(modulePath, { githubToken }, (err, dependencies) => {
   if (err) {
-    console.error(err);
-    process.exit(1);
+    console.error(err.message);
+    return process.exit(1);
   }
+
+  printReport(dependencies);
+  checkForUpdate();
 });
 
 // -----------------------------------------------------------------------------
 // HELPERS
 // -----------------------------------------------------------------------------
 
-function createReport(deps) {
+function printReport(dependencies) {
   if (hideUpToDate) {
-    deps = deps.filter(dep => dep.status !== 'ok');
+    dependencies = dependencies.filter(dep => dep.status !== 'ok');
   }
 
-  return utils.createReportTable(deps, { useColors });
+  const report = utils.createReportTable(dependencies, { useColors });
+  console.log(report);
 }
 
-function* checkForUpdate() {
-  const content       = yield utils.downloadGithubPackage('AurelienRibon/node-checkmydeps', null, $$());
-  const latestVersion = content.version;
+function checkForUpdate() {
+  utils.downloadGithubPackage('AurelienRibon/node-checkmydeps', null, (err, content) => {
+    if (err) { return; }
 
-  if (semver.gt(latestVersion, currentVersion)) {
-    const startRed = useColors ? '\u001b[31;1m' : '';
-    const endColor = useColors ? '\u001b[0m'    : '';
+    const latestVersion = content.version;
 
-    console.log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
-  }
+    if (semver.gt(latestVersion, currentVersion)) {
+      const startRed = useColors ? '\u001b[31;1m' : '';
+      const endColor = useColors ? '\u001b[0m'    : '';
+
+      console.log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
+    }
+  });
 }
