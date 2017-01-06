@@ -21,6 +21,7 @@ Options:
 const minimist       = require('minimist');
 const semver         = require('semver');
 const suspend        = require('suspend');
+const useColors      = require('supports-color');
 const checkmydeps    = require('../lib/checkmydeps');
 const utils          = require('../lib/utils');
 const currentVersion = require('../package.json').version;
@@ -67,7 +68,6 @@ function createReport(deps) {
     deps = deps.filter(dep => dep.status !== 'ok');
   }
 
-  const useColors = process.stdout.isTTY;
   return utils.createReportTable(deps, { useColors });
 }
 
@@ -76,9 +76,8 @@ function* checkForUpdate() {
   const latestVersion = content.version;
 
   if (semver.gt(latestVersion, currentVersion)) {
-    const tty      = process.stdout.isTTY;
-    const startRed = tty ? '\u001b[31;1m' : '';
-    const endColor = tty ? '\u001b[0m' : '';
+    const startRed = useColors ? '\u001b[31;1m' : '';
+    const endColor = useColors ? '\u001b[0m'    : '';
 
     console.log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
   }
