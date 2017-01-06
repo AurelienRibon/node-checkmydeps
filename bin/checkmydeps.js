@@ -11,29 +11,36 @@ Options:
     --github-token     Defines the GitHub token to use to access private github
                        repositories. The token must have "repo" capability (check
                        your GitHub settings, section "Personal access tokens").
-    -h, --help         Shows this description.`;
+    -h, --help         Shows this description.
+    -v, --version      Shows the current version of this tool.`;
 
 // -----------------------------------------------------------------------------
 // PROGRAM
 // -----------------------------------------------------------------------------
 
-const minimist    = require('minimist');
-const semver      = require('semver');
-const suspend     = require('suspend');
-const checkmydeps = require('../lib/checkmydeps');
-const utils       = require('../lib/utils');
-const $$          = suspend.resume;
+const minimist       = require('minimist');
+const semver         = require('semver');
+const suspend        = require('suspend');
+const checkmydeps    = require('../lib/checkmydeps');
+const utils          = require('../lib/utils');
+const currentVersion = require('../package.json').version;
+const $$             = suspend.resume;
 
 const args         = minimist(process.argv.slice(2));
 const modulePath   = args._[0] || '.';
 const hideUpToDate = args['hide-up-to-date'];
 const githubToken  = args['github-token'] || process.env.GITHUB_TOKEN;
 const showHelp     = args.h || args.help;
+const showVersion  = args.v || args.version;
+
+if (showVersion) {
+  console.log(`checkmydeps v${currentVersion}`);
+  return process.exit(0);
+}
 
 if (showHelp) {
   console.log(help.trim());
-  process.exit(0);
-  return;
+  return process.exit(0);
 }
 
 suspend.run(function* () {
@@ -65,9 +72,8 @@ function createReport(deps) {
 }
 
 function* checkForUpdate() {
-  const content        = yield utils.downloadGithubPackage('AurelienRibon/node-checkmydeps', null, $$());
-  const latestVersion  = content.version;
-  const currentVersion = require('../package.json').version;
+  const content       = yield utils.downloadGithubPackage('AurelienRibon/node-checkmydeps', null, $$());
+  const latestVersion = content.version;
 
   if (semver.gt(latestVersion, currentVersion)) {
     const tty      = process.stdout.isTTY;
