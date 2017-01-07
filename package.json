@@ -25,5 +25,5 @@
   "engines": {
     "node": ">=6"
   },
-  "tonicExample": "const checkMyDeps = require('checkmydeps');\n\ncheckMyDeps('.', {}, (err, res) => {\n    if (err) { return console.error(err); }\n    \n    let report = '';\n    report += 'OUTDATED DEPENDENCIES\n\n';\n    report += checkMyDeps.createReportTable(res.nok);\n\n    console.log(report);\n});"
+  "tonicExample": "const checkMyDeps = require('checkmydeps');\n\ncheckMyDeps('.', {}, (err, res) => {\n  if (err) { return console.error(err); }\n  \n  const report = checkMyDeps.createReportTable(res, { useColors: false });\n  console.log(report);\n});"
 }
