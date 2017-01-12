@@ -66,16 +66,15 @@ function printReport(dependencies) {
 }
 
 function checkForUpdate() {
-  utils.downloadGithubPackage('AurelienRibon/node-checkmydeps', null, (err, content) => {
-    if (err) { return; }
+  const repository = 'aurelienribon/node-checkmydeps';
 
-    const latestVersion = content.version;
+  utils.fetchLatestVersionFromGithubPackage(repository, null, (err, latestVersion) => {
+    if (err) { return console.error(`\nFailed to check for update: ${err.message}`); }
+    if (!semver.gt(latestVersion, currentVersion)) { return; }
 
-    if (semver.gt(latestVersion, currentVersion)) {
-      const startRed = useColors ? '\u001b[31;1m' : '';
-      const endColor = useColors ? '\u001b[0m'    : '';
+    const startRed = useColors ? '\u001b[31;1m' : '';
+    const endColor = useColors ? '\u001b[0m'    : '';
 
-      console.log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
-    }
+    console.log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
   });
 }
