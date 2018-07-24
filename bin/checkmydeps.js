@@ -22,7 +22,8 @@ const minimist = require('minimist');
 const semver = require('semver');
 const supportsColor = require('supports-color');
 const checkmydeps = require('../lib/checkmydeps');
-const utils = require('../lib/utils');
+const { fetchLatestVersionFromGithubPackage } = require('../lib/fetcher');
+const { createReportTable } = require('../lib/reporter');
 const currentVersion = require('../package.json').version;
 
 const args = minimist(process.argv.slice(2));
@@ -72,14 +73,14 @@ function printReport(dependencies) {
     dependencies = dependencies.filter(dep => dep.status !== 'ok');
   }
 
-  const report = utils.createReportTable(dependencies, { useColors });
+  const report = createReportTable(dependencies, { useColors });
   log(report);
 }
 
 async function checkForUpdate() {
   try {
     const repository = 'aurelienribon/node-checkmydeps';
-    const latestVersion = await utils.fetchLatestVersionFromGithubPackage(repository);
+    const latestVersion = await fetchLatestVersionFromGithubPackage(repository);
 
     if (!semver.gt(latestVersion, currentVersion)) {
       return;
