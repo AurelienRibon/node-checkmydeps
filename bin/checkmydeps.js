@@ -20,7 +20,7 @@ Options:
 
 const minimist = require('minimist');
 const semver = require('semver');
-const useColors = require('supports-color');
+const supportsColor = require('supports-color');
 const checkmydeps = require('../lib/checkmydeps');
 const utils = require('../lib/utils');
 const currentVersion = require('../package.json').version;
@@ -31,6 +31,8 @@ const hideUpToDate = args['hide-up-to-date'];
 const githubToken = args['github-token'] || process.env.GITHUB_TOKEN;
 const showHelp = args.h || args.help;
 const showVersion = args.v || args.version;
+
+const useColors = supportsColor.stdout;
 
 if (showVersion) {
   log(`checkmydeps v${currentVersion}`);
