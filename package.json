@@ -1,7 +1,7 @@
 {
   "name": "checkmydeps",
   "version": "2.0.0",
-  "description": "Checks installed dependencies against the requirements of package.json. Handles non-semver URLs by checking the remote package.json!",
+  "description": "Checks installed dependencies against the requirements of package.json. Handles non-semver URLs by checking the remote package.json.",
   "main": "index.js",
   "bin": "./bin/checkmydeps.js",
   "repository": "AurelienRibon/node-checkmydeps",
@@ -10,20 +10,26 @@
     "dependencies",
     "check"
   ],
-  "author": "Aurelien Ribon <aurelien.ribon@gmail.com> (http://www.aurelienribon.com)",
+  "author": "Aurelien Ribon <aurelien.ribon@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/AurelienRibon/node-checkmydeps/issues"
   },
-  "homepage": "https://github.com/AurelienRibon/node-checkmydeps#readme",
+  "homepage": "https://github.com/AurelienRibon/node-checkmydeps",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "format": "prettier --write '**.js'",
+    "lint": "eslint ."
+  },
   "dependencies": {
     "minimist": "^1.2.0",
     "semver": "^5.3.0",
-    "supports-color": "^3.1.2",
-    "suspend": "^0.7.0"
+    "supports-color": "^3.1.2"
   },
-  "engines": {
-    "node": ">=6"
-  },
-  "tonicExample": "const checkMyDeps = require('checkmydeps');\n\ncheckMyDeps('.', {}, (err, res) => {\n  if (err) { return console.error(err); }\n  \n  const report = checkMyDeps.createReportTable(res, { useColors: false });\n  console.log(report);\n});"
+  "devDependencies": {
+    "eslint": "^5.2.0",
+    "prettier": "^1.13.7"
+  }
 }

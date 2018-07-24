@@ -33,18 +33,18 @@ const showHelp     = args.h || args.help;
 const showVersion  = args.v || args.version;
 
 if (showVersion) {
-  console.log(`checkmydeps v${currentVersion}`);
+  log(`checkmydeps v${currentVersion}`);
   return process.exit(0);
 }
 
 if (showHelp) {
-  console.log(help.trim());
+  log(help.trim());
   return process.exit(0);
 }
 
 checkmydeps(modulePath, { githubToken }, (err, dependencies) => {
   if (err) {
-    console.error(err.message);
+    logError(err.message);
     return process.exit(1);
   }
 
@@ -62,19 +62,27 @@ function printReport(dependencies) {
   }
 
   const report = utils.createReportTable(dependencies, { useColors });
-  console.log(report);
+  log(report);
 }
 
 function checkForUpdate() {
   const repository = 'aurelienribon/node-checkmydeps';
 
   utils.fetchLatestVersionFromGithubPackage(repository, null, (err, latestVersion) => {
-    if (err) { return console.error(`\nFailed to check for update: ${err.message}`); }
+    if (err) { return logError(`\nFailed to check for update: ${err.message}`); }
     if (!semver.gt(latestVersion, currentVersion)) { return; }
 
     const startRed = useColors ? '\u001b[31;1m' : '';
     const endColor = useColors ? '\u001b[0m'    : '';
 
-    console.log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
+    log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
   });
+}
+
+function log(...args) {
+  console.log(...args); // eslint-disable-line no-console
+}
+
+function logError(...args) {
+  console.error(...args); // eslint-disable-line no-console
 }
