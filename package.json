@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "Checks installed dependencies against the requirements of package.json. Handles non-semver URLs by checking the remote package.json.",
   "main": "index.js",
-  "bin": "./bin/checkmydeps.js",
+  "bin": "./bin/checkmydeps.bin.js",
   "repository": "AurelienRibon/node-checkmydeps",
   "keywords": [
     "dependency",
