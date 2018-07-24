@@ -42,15 +42,24 @@ if (showHelp) {
   return process.exit(0);
 }
 
-checkmydeps(modulePath, { githubToken }, (err, dependencies) => {
-  if (err) {
+run();
+
+async function run() {
+  let dependencies;
+
+  try {
+    dependencies = await checkmydeps(modulePath, { githubToken });
+  } catch (err) {
     logError(err.message);
     return process.exit(1);
   }
 
   printReport(dependencies);
-  checkForUpdate();
-});
+
+  if (Math.random() > 0.66) {
+    await checkForUpdate();
+  }
+}
 
 // -----------------------------------------------------------------------------
 // HELPERS
@@ -65,13 +74,11 @@ function printReport(dependencies) {
   log(report);
 }
 
-function checkForUpdate() {
-  const repository = 'aurelienribon/node-checkmydeps';
+async function checkForUpdate() {
+  try {
+    const repository = 'aurelienribon/node-checkmydeps';
+    const latestVersion = await utils.fetchLatestVersionFromGithubPackage(repository);
 
-  utils.fetchLatestVersionFromGithubPackage(repository, null, (err, latestVersion) => {
-    if (err) {
-      return logError(`\nFailed to check for update: ${err.message}`);
-    }
     if (!semver.gt(latestVersion, currentVersion)) {
       return;
     }
@@ -80,7 +87,9 @@ function checkForUpdate() {
     const endColor = useColors ? '\u001b[0m' : '';
 
     log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
-  });
+  } catch (err) {
+    log(`(unable to check for new version of the tool, are you offline?)`);
+  }
 }
 
 function log(...args) {
