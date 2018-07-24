@@ -20,7 +20,7 @@
     "node": ">=10"
   },
   "scripts": {
-    "format": "prettier --write '**.js'",
+    "format": "prettier --write '**/*.js'",
     "lint": "eslint ."
   },
   "dependencies": {

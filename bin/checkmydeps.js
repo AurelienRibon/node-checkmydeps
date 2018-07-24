@@ -18,19 +18,19 @@ Options:
 // PROGRAM
 // -----------------------------------------------------------------------------
 
-const minimist       = require('minimist');
-const semver         = require('semver');
-const useColors      = require('supports-color');
-const checkmydeps    = require('../lib/checkmydeps');
-const utils          = require('../lib/utils');
+const minimist = require('minimist');
+const semver = require('semver');
+const useColors = require('supports-color');
+const checkmydeps = require('../lib/checkmydeps');
+const utils = require('../lib/utils');
 const currentVersion = require('../package.json').version;
 
-const args         = minimist(process.argv.slice(2));
-const modulePath   = args._[0] || '.';
+const args = minimist(process.argv.slice(2));
+const modulePath = args._[0] || '.';
 const hideUpToDate = args['hide-up-to-date'];
-const githubToken  = args['github-token'] || process.env.GITHUB_TOKEN;
-const showHelp     = args.h || args.help;
-const showVersion  = args.v || args.version;
+const githubToken = args['github-token'] || process.env.GITHUB_TOKEN;
+const showHelp = args.h || args.help;
+const showVersion = args.v || args.version;
 
 if (showVersion) {
   log(`checkmydeps v${currentVersion}`);
@@ -69,11 +69,15 @@ function checkForUpdate() {
   const repository = 'aurelienribon/node-checkmydeps';
 
   utils.fetchLatestVersionFromGithubPackage(repository, null, (err, latestVersion) => {
-    if (err) { return logError(`\nFailed to check for update: ${err.message}`); }
-    if (!semver.gt(latestVersion, currentVersion)) { return; }
+    if (err) {
+      return logError(`\nFailed to check for update: ${err.message}`);
+    }
+    if (!semver.gt(latestVersion, currentVersion)) {
+      return;
+    }
 
     const startRed = useColors ? '\u001b[31;1m' : '';
-    const endColor = useColors ? '\u001b[0m'    : '';
+    const endColor = useColors ? '\u001b[0m' : '';
 
     log(`\n${startRed}Version ${latestVersion} is available, current is ${currentVersion}, please update.${endColor}`);
   });
