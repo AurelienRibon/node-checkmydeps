@@ -7,12 +7,12 @@ Usage: checkmydeps [options] [path]
           no path is provided.
 
 Options:
-    --hide-up-to-date  Prevents the display of up-to-date dependencies.
-    --github-token     Defines the GitHub token to use to access private github
-                       repositories. The token must have "repo" capability (check
-                       your GitHub settings, section "Personal access tokens").
-    -h, --help         Shows this description.
-    -v, --version      Shows the current version of this tool.`;
+    --github-token         Defines the GitHub token to use to access private github
+                           repositories. The token must have "repo" capability (check
+                           your GitHub settings, section "Personal access tokens").
+    -u, --hide-up-to-date  Prevents the display of up-to-date dependencies.
+    -h, --help             Shows this description.
+    -v, --version          Shows the current version of this tool.`;
 
 // -----------------------------------------------------------------------------
 // PROGRAM
@@ -21,15 +21,16 @@ Options:
 const minimist = require('minimist');
 const semver = require('semver');
 const supportsColor = require('supports-color');
-const checkmydeps = require('../lib/checkmydeps');
+const checkalldeps = require('../lib/checkalldeps');
 const { fetchLatestVersionFromGithubPackage } = require('../lib/fetcher');
-const { createReportTable } = require('../lib/reporter');
+const { generateFullReport } = require('../lib/reporter');
+const { log, logError } = require('../lib/utils');
 const currentVersion = require('../package.json').version;
 
 const args = minimist(process.argv.slice(2));
 const modulePath = args._[0] || '.';
-const hideUpToDate = args['hide-up-to-date'];
 const githubToken = args['github-token'] || process.env.GITHUB_TOKEN;
+const hideUpToDate = args.u || args['hide-up-to-date'];
 const showHelp = args.h || args.help;
 const showVersion = args.v || args.version;
 
@@ -48,18 +49,18 @@ if (showHelp) {
 run();
 
 async function run() {
-  let dependencies;
+  let dependenciesByModule;
 
   try {
-    dependencies = await checkmydeps(modulePath, { githubToken });
+    dependenciesByModule = await checkalldeps(modulePath, { githubToken });
   } catch (err) {
     logError(err.message);
     return process.exit(1);
   }
 
-  printReport(dependencies);
+  printReport(dependenciesByModule);
 
-  if (Math.random() > 0.66) {
+  if (shouldCheckForUpdate()) {
     await checkForUpdate();
   }
 }
@@ -68,13 +69,19 @@ async function run() {
 // HELPERS
 // -----------------------------------------------------------------------------
 
-function printReport(dependencies) {
+function printReport(dependenciesByModule) {
   if (hideUpToDate) {
-    dependencies = dependencies.filter(dep => dep.status !== 'ok');
+    for (const [name, deps] of Object.entries(dependenciesByModule)) {
+      dependenciesByModule[name] = deps.filter(it => it.status !== 'ok');
+    }
   }
 
-  const report = createReportTable(dependencies, { useColors });
+  const report = generateFullReport(dependenciesByModule, { useColors });
   log(report);
+}
+
+function shouldCheckForUpdate() {
+  return Math.random() > 0.66;
 }
 
 async function checkForUpdate() {
@@ -93,12 +100,4 @@ async function checkForUpdate() {
   } catch (err) {
     log(`(unable to check for new version of the tool, are you offline?)`);
   }
-}
-
-function log(...args) {
-  console.log(...args); // eslint-disable-line no-console
-}
-
-function logError(...args) {
-  console.error(...args); // eslint-disable-line no-console
 }
