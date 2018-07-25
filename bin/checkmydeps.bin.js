@@ -2,17 +2,17 @@
 'use strict';
 
 const help = `
-Usage: checkmydeps [options] [path]
-    path  The path of the target node module to check. Uses current directory if
-          no path is provided.
+USAGE: checkmydeps [options] [path]
 
-Options:
-    --github-token         Defines the GitHub token to use to access private github
-                           repositories. The token must have "repo" capability (check
-                           your GitHub settings, section "Personal access tokens").
-    -u, --hide-up-to-date  Prevents the display of up-to-date dependencies.
-    -h, --help             Shows this description.
-    -v, --version          Shows the current version of this tool.`;
+    path      The optiontal path of the target node module to check. Default to
+              current directory.
+    options   See below
+
+OPTIONS:
+    -t, --token      Define the token to access private Github repositories.
+    -n, --none       Prevent the display of up-to-date dependencies.
+    -h, --help       Show this description.
+    -v, --version    Show the current version of this tool.`;
 
 // -----------------------------------------------------------------------------
 // PROGRAM
@@ -29,19 +29,20 @@ const currentVersion = require('../package.json').version;
 
 const args = minimist(process.argv.slice(2));
 const modulePath = args._[0] || '.';
-const githubToken = args['github-token'] || process.env.GITHUB_TOKEN;
-const hideUpToDate = args.u || args['hide-up-to-date'];
-const showHelp = args.h || args.help;
-const showVersion = args.v || args.version;
+const argToken = args.t || args.token || process.env.GITHUB_TOKEN;
+const argNone = args.n || args.none;
+const argAll = args.a || args.all;
+const argHelp = args.h || args.help;
+const argVersion = args.v || args.version;
 
 const useColors = supportsColor.stdout;
 
-if (showVersion) {
+if (argVersion) {
   log(`checkmydeps v${currentVersion}`);
   return process.exit(0);
 }
 
-if (showHelp) {
+if (argHelp) {
   log(help.trim());
   return process.exit(0);
 }
@@ -52,7 +53,7 @@ async function run() {
   let dependenciesByModule;
 
   try {
-    dependenciesByModule = await checkalldeps(modulePath, { githubToken });
+    dependenciesByModule = await checkalldeps(modulePath, { githubToken: argToken });
   } catch (err) {
     logError(err.message);
     return process.exit(1);
@@ -70,7 +71,7 @@ async function run() {
 // -----------------------------------------------------------------------------
 
 function printReport(dependenciesByModule) {
-  if (hideUpToDate) {
+  if (argNone) {
     for (const [name, deps] of Object.entries(dependenciesByModule)) {
       dependenciesByModule[name] = deps.filter(it => it.status !== 'ok');
     }
