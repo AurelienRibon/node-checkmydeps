@@ -8,6 +8,15 @@ USAGE: checkmydeps [options] [path]
               current directory.
     options   See below
 
+NOTE:
+    You may get some "404" errors if some dependencies use private Github
+    repositories. If you can access those repositories, then just provide an
+    access token to this tool, using either argument --token, or by setting
+    an environment variable GITHUB_TOKEN.
+    To create a token, just go to your account settings on Github, in section
+    "Personal access tokens". Create a new token with the "repo" capability
+    (it only needs to be able to read from a repository).
+
 OPTIONS:
     -t, --token      Define the token to access private Github repositories.
     -n, --none       Prevent the display of up-to-date dependencies.
