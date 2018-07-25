@@ -19,7 +19,8 @@ NOTE:
 
 OPTIONS:
     -t, --token      Define the token to access private Github repositories.
-    -n, --none       Prevent the display of up-to-date dependencies.
+    -m, --minimal    Prevent the display of up-to-date dependencies.
+    -a, --all        Force the display of up-to-date dependencies.
     -h, --help       Show this description.
     -v, --version    Show the current version of this tool.`;
 
@@ -39,7 +40,7 @@ const currentVersion = require('../package.json').version;
 const args = minimist(process.argv.slice(2));
 const modulePath = args._[0] || '.';
 const argToken = args.t || args.token || process.env.GITHUB_TOKEN;
-const argNone = args.n || args.none;
+const argMinimal = args.m || args.minimal;
 const argAll = args.a || args.all;
 const argHelp = args.h || args.help;
 const argVersion = args.v || args.version;
@@ -59,16 +60,16 @@ if (argHelp) {
 run();
 
 async function run() {
-  let dependenciesByModule;
+  let checkalldepsResult;
 
   try {
-    dependenciesByModule = await checkalldeps(modulePath, { githubToken: argToken });
+    checkalldepsResult = await checkalldeps(modulePath, { githubToken: argToken });
   } catch (err) {
     logError(err.message);
     return process.exit(1);
   }
 
-  printReport(dependenciesByModule);
+  printReport(checkalldepsResult);
 
   if (shouldCheckForUpdate()) {
     await checkForUpdate();
@@ -79,14 +80,16 @@ async function run() {
 // HELPERS
 // -----------------------------------------------------------------------------
 
-function printReport(dependenciesByModule) {
-  if (argNone) {
+function printReport(checkalldepsResult) {
+  const { dependenciesByModule, multiRepo } = checkalldepsResult;
+
+  if (argMinimal || multiRepo && !argAll) {
     for (const [name, deps] of Object.entries(dependenciesByModule)) {
       dependenciesByModule[name] = deps.filter(it => it.status !== 'ok');
     }
   }
 
-  const report = generateFullReport(dependenciesByModule, { useColors });
+  const report = generateFullReport(dependenciesByModule, multiRepo, { useColors });
   log(report);
 }
 
