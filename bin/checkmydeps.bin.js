@@ -31,14 +31,15 @@ OPTIONS:
 const minimist = require('minimist');
 const semver = require('semver');
 const supportsColor = require('supports-color');
+const checkmydeps = require('../lib/checkmydeps');
 const checkalldeps = require('../lib/checkalldeps');
 const { fetchLatestVersionFromGithubPackage } = require('../lib/fetcher');
-const { generateFullReport } = require('../lib/reporter');
-const { log, logError } = require('../lib/utils');
-const currentVersion = require('../package.json').version;
+const { generateSingleRepoReport, generateMultiRepoReport } = require('../lib/reporter');
+const { log, logError, hasPackageJson} = require('../lib/utils');
+const { version: currentVersion } = require('../package.json');
 
 const args = minimist(process.argv.slice(2));
-const modulePath = args._[0] || '.';
+const path = args._[0] || '.';
 const argToken = args.t || args.token || process.env.GITHUB_TOKEN;
 const argMinimal = args.m || args.minimal;
 const argAll = args.a || args.all;
@@ -60,16 +61,11 @@ if (argHelp) {
 run();
 
 async function run() {
-  let checkalldepsResult;
-
-  try {
-    checkalldepsResult = await checkalldeps(modulePath, { githubToken: argToken });
-  } catch (err) {
-    logError(err.message);
-    return process.exit(1);
+  if (hasPackageJson(path)) {
+    await runForSingleRepo(path, argToken);
+  } else {
+    await runForMultiRepo(path, argToken);
   }
-
-  printReport(checkalldepsResult);
 
   if (shouldCheckForUpdate()) {
     await checkForUpdate();
@@ -80,18 +76,53 @@ async function run() {
 // HELPERS
 // -----------------------------------------------------------------------------
 
-function printReport(checkalldepsResult) {
-  const { dependenciesByModule, multiRepo } = checkalldepsResult;
+async function runForSingleRepo(path, githubToken) {
+  let dependencies;
 
-  if (argMinimal || multiRepo && !argAll) {
+  try {
+    dependencies = await checkmydeps(path, { githubToken });
+  } catch (err) {
+    logError(err.message);
+    return process.exit(1);
+  }
+
+  if (argMinimal) {
+    dependencies = dependencies.filter(it => it.isOutdated());
+  }
+
+  const report = generateSingleRepoReport(dependencies, { useColors });
+  logReport(report);
+}
+
+async function runForMultiRepo(path, githubToken) {
+  let dependenciesByModule;
+
+  try {
+    dependenciesByModule = await checkalldeps(path, { githubToken });
+  } catch (err) {
+    logError(err.message);
+    return process.exit(1);
+  }
+
+  if (!argAll) {
     for (const [name, deps] of Object.entries(dependenciesByModule)) {
-      dependenciesByModule[name] = deps.filter(it => it.status !== 'ok');
+      dependenciesByModule[name] = deps.filter(it => it.isOutdated());
     }
   }
 
-  const report = generateFullReport(dependenciesByModule, multiRepo, { useColors });
-  log(report);
+  const report = generateMultiRepoReport(dependenciesByModule, { useColors });
+  logReport(report);
 }
+
+function logReport(report) {
+  if (report.length > 0) {
+    log(report);
+  }
+}
+
+// -----------------------------------------------------------------------------
+// UPDATE CHECK
+// -----------------------------------------------------------------------------
 
 function shouldCheckForUpdate() {
   return Math.random() > 0.66;
