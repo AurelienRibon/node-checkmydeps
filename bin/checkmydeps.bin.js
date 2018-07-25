@@ -4,7 +4,7 @@
 const help = `
 USAGE: checkmydeps [options] [path]
 
-    path      The optiontal path of the target node module to check. Default to
+    path      The optional path of the target node module to check. Default to
               current directory.
     options   See below
 
